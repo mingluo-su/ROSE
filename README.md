@@ -65,12 +65,12 @@ python main.py \
     --sparsity_ratio 0.7 \
     --prune_method ROSE \
     --eval_zero_shot \
-    --tasks winogrande,boolq,piqa,openbookqa,hellaswag,arc_easy,arc_challenge
+    --tasks winogrande boolq piqa openbookqa hellaswag arc_easy arc_challenge
 ```
 
 ## ❤️Acknowledgements
 
-- This source code is derived from the famous PyTorch reimplementation of [SparseGPT](https://github.com/IST-DASLab/sparsegpt), [Wanda](https://github.com/locuslab/wanda), [DSnoT](), [Rethinking LLM pruning](https://github.com/LOG-postech/rethinking-LLM-pruning). We thank them for their excellent open-source contributions.
+- This source code is derived from the famous PyTorch reimplementation of [SparseGPT](https://github.com/IST-DASLab/sparsegpt), [Wanda](https://github.com/locuslab/wanda), [DSnoT](https://github.com/zyxxmu/DSnoT), [Rethinking LLM pruning](https://github.com/LOG-postech/rethinking-LLM-pruning), and [GPTAQ](https://github.com/Intelligent-Computing-Lab-Panda/GPTAQ). We thank them for their excellent open-source contributions.
 - The README file is inspired by [SparseSSM](https://github.com/horseee/LLM-Pruner),[OBS-Diff](https://github.com/Alrightlone/OBS-Diff) and [MergeMix](https://github.com/JinXins/MergeMix)
 
 

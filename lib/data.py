@@ -1,13 +1,12 @@
 import random
 from datasets import load_dataset
 
-# Load and process wikitext2 dataset
+
 def get_wikitext2(nsamples, seed, seqlen, tokenizer):
-    # Load train and test datasets
+
     traindata = load_dataset("wikitext", 'wikitext-2-raw-v1', split='train')
     testdata = load_dataset('wikitext', 'wikitext-2-raw-v1', split='test')
 
-    # Encode datasets
     trainenc = tokenizer(" ".join(traindata['text']), return_tensors='pt')
     testenc = tokenizer("\n\n".join(testdata['text']), return_tensors='pt')
  
@@ -25,10 +24,8 @@ def get_wikitext2(nsamples, seed, seqlen, tokenizer):
 
 def get_c4(nsamples, seed, seqlen, tokenizer):
     
-    
     traindata = load_dataset('allenai/c4', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train')
     valdata = load_dataset('allenai/c4', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation')
-    
     # If you encounter network issues, you can manually download from the C4 dataset manually and use the following code, for example:
     # traindata = load_dataset('json', data_files='/datasets/c4/c4-train.00000-of-01024.json.gz', split='train')
     # valdata = load_dataset('json', data_files='/datasets/c4/c4-validation.00000-of-00008.json.gz', split='train')
@@ -58,7 +55,7 @@ def get_c4(nsamples, seed, seqlen, tokenizer):
 
     return trainloader, valenc
 
-# Load and process ptb dataset
+
 def get_ptb(nsamples, seed, seqlen, tokenizer):
     traindata = load_dataset('ptb_text_only', 'penn_treebank', split='train')
     testdata = load_dataset('ptb_text_only', 'penn_treebank', split='test')
@@ -78,7 +75,6 @@ def get_ptb(nsamples, seed, seqlen, tokenizer):
     return trainloader, testenc
     
 
-# Function to select the appropriate loader based on dataset name
 def get_loaders(name, nsamples=128, seed=0, seqlen=2048, tokenizer=None):
     if 'wikitext2' in name:
         return get_wikitext2(nsamples, seed, seqlen, tokenizer)

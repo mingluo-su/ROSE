@@ -30,7 +30,6 @@ class ROSE:
      
 
     def add_batch(self, inp, out):
-        
         if DEBUG:
             self.inp1 = inp
             self.out1 = out

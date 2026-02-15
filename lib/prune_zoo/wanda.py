@@ -7,18 +7,14 @@ class Wanda:
     """
     This class wraps a GPT layer for specific operations.
     """
-
     def __init__(self, layer):
         self.layer = layer
         self.dev = self.layer.weight.device
         self.rows = layer.weight.data.shape[0]
         self.columns = layer.weight.data.shape[1]
         self.nsamples = 0
-
         self.scaler_row = torch.zeros((self.columns), device=self.dev)
-
         self.nsamples = 0
-
 
     def add_batch(self, inp, out):
     
@@ -31,11 +27,12 @@ class Wanda:
             inp = inp.t()
         
         self.scaler_row *= self.nsamples / (self.nsamples+tmp)
+        
         inp = inp.type(torch.float32)
         self.nsamples += tmp
         inp = math.sqrt(2 / self.nsamples) * inp.float()
+        
         self.scaler_row += torch.norm(inp, p=2, dim=1) ** 2  / self.nsamples
-   
     
     def free(self):
         self.scaler_row = None

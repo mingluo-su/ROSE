@@ -31,11 +31,9 @@ class DSnoT:
         self.var = torch.zeros((self.columns), device=self.dev)
         self.ntokens = 0
         
-        
         self.layer_id = layer_id 
         self.layer_name = layer_name
 
-        
     def add_batch(self, inp, out):
 
         self.inp1 = inp
@@ -68,8 +66,6 @@ class DSnoT:
         if self.initial_method == "sparsegpt":
             inp = math.sqrt(2 / self.nsamples) * inp.float()
             self.H += inp.matmul(inp.t())
-
-# ...existing code...
      
     def return_reorder_indice(self,input_tensor):
         """
@@ -117,7 +113,6 @@ class DSnoT:
 
         return reorder_indice
     
-
     def fasterprune(
         self, sparsity, prune_n=0, prune_m=0,max_cycle_time=50,update_threshold=0.1,pow_of_var_regrowing=1,pow_of_var_pruning=1,without_DSnoT=False,skip_layer="mlp",skip_sub_layer="no_skip",without_same_sign=True
 
@@ -305,9 +300,7 @@ class DSnoT:
                         ),
                     )
         else:
-                # 将所有张量操作移动到CPU上
-            device = torch.device('cpu')
-
+        
             _, sorted_initial_indice = torch.sort(
                 initial_metric.cpu(), dim=-1, stable=True
             )
@@ -400,7 +393,6 @@ class DSnoT:
                 )
                 cycle_time = 0
                 
-                # 将所有需要的数据移动到CPU
                 DSnoT_metric_cpu = DSnoT_metric.cpu()
                 weight_mask_cpu = weight_mask.cpu()
                 
@@ -486,7 +478,6 @@ class DSnoT:
                             )
                         )
                     
-                    # 更新CPU上的mask
                     weight_mask_cpu.scatter_(1, pruning_indice, update_mask)
                     weight_mask_cpu.scatter_(1, regrowing_indice, ~update_mask)
 
@@ -501,14 +492,10 @@ class DSnoT:
                         torch.zeros_like(regrowing_metric),
                     )
             
-            # 将最终的mask移回原始设备
                 weight_mask.copy_(weight_mask_cpu.to(self.layer.weight.data.device))
         self.layer.weight.data[weight_mask] = 0
-        mse = torch.sum((self.layer(self.inp1) - self.out1) ** 2)/self.inp1.shape[0]
 
         return mse
-
-
 
     def free(self):
         self.H = None
