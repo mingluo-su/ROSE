@@ -33,12 +33,8 @@
 <div align="left">
   <img src="./imgs/overview.png" width="100%">
   <br>
-  <em>
-    (a) Illustration of the difference between SparseGPT and ROSE. Orange color represents weight importance, and the darker the color, the greater the importance. In SparseGPT, the number of weights available for error compensation (shown in dark blue) decreases during pruning, limiting recovery if high-error weights are pruned late. ROSE reorders those with potentially large pruning errors to the front to be pruned earlier. In this way, more parameters remain available for larger error compensation. 
-    (b) Step of our proposed ROSE. Given the dense weight $\mathbf{W}$, we calculate the importance score $\mathbf{S}$ and split it into blocks based on $B_S$. The smallest $p\%$ of values from each block are selected as the loss matrix $\mathbf{L}$. Column loss and block loss are calculated based on the loss matrix. Columns within one block are reordered in descending order by column scores, and blocks are reordered in descending order by block scores.
-  </em>
+  (a) Illustration of the difference between SparseGPT and ROSE. Orange color represents weight importance, and the darker the color, the greater the importance. In SparseGPT, the number of weights available for error compensation (shown in dark blue) decreases during pruning, limiting recovery if high-error weights are pruned late. ROSE reorders those with potentially large pruning errors to the front to be pruned earlier. In this way, more parameters remain available for larger error compensation. (b) Step of our proposed ROSE. Given the dense weight matrix <strong>W</strong>, we calculate the importance score matrix <strong>S</strong> and split it into blocks based on block size <strong>B<sub>S</sub></strong>. The smallest <em>p</em>% of values from each block are selected as the loss matrix <strong>L</strong>. Column loss and block loss are calculated based on the loss matrix. Columns within one block are reordered in descending order by column scores, and blocks are reordered in descending order by block scores.
 </div>
-
 
 
 ## 🚀Quick Start
