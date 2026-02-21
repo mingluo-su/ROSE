@@ -51,7 +51,7 @@ def check_sparsity(model):
 
     return float(count) / total_params
 
-def cleanup_memory(verbos=True) -> None:
+def cleanup_memory(verbos=True):
     """Run GC and clear GPU memory."""
     import gc
     import inspect
@@ -78,7 +78,7 @@ def cleanup_memory(verbos=True) -> None:
                 f" ({(memory_after - memory_before) / (1024 ** 3):.2f} GB)"
             )
 
-def distribute_model(model) -> None:
+def distribute_model(model):
     """Distribute the model across available GPUs. NB: only implemented for Llama-2."""
     no_split_module_classes = ['LlamaDecoderLayer']
     max_memory = get_balanced_memory(

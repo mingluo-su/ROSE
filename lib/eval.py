@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from .data import get_loaders
 
+
 def eval_ppl(model, tokenizer, dataset):
     print(f"evaluating on {dataset}")
     _, testloader = get_loaders(dataset, seed=0, seqlen=model.seqlen, tokenizer=tokenizer)
@@ -11,7 +12,6 @@ def eval_ppl(model, tokenizer, dataset):
 
 
 def eval_ppl_wikitext(model, testenc, bs=1):
-    
     device = model.device
     
     testenc = testenc.input_ids
@@ -41,9 +41,8 @@ def eval_ppl_wikitext(model, testenc, bs=1):
     return ppl.item()
 
 
-def eval_zero_shot(model,tokenizer,args):
-    
-    from lm_eval import evaluator 
+def eval_zero_shot(model, tokenizer,args):
+    from lm_eval import evaluator  
     from lm_eval.models.huggingface import HFLM
     
     lm = HFLM(pretrained=model, tokenizer=tokenizer, batch_size=args.lm_eval_batch_size)

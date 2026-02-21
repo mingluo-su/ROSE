@@ -3,7 +3,6 @@ from datasets import load_dataset
 
 
 def get_wikitext2(nsamples, seed, seqlen, tokenizer):
-
     traindata = load_dataset("wikitext", 'wikitext-2-raw-v1', split='train')
     testdata = load_dataset('wikitext', 'wikitext-2-raw-v1', split='test')
 
@@ -23,7 +22,6 @@ def get_wikitext2(nsamples, seed, seqlen, tokenizer):
 
 
 def get_c4(nsamples, seed, seqlen, tokenizer):
-    
     traindata = load_dataset('allenai/c4', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train')
     valdata = load_dataset('allenai/c4', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation')
     # If you encounter network issues, you can manually download from the C4 dataset manually and use the following code, for example:

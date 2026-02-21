@@ -59,10 +59,7 @@ class SparseGPT:
         self.scaler_row += torch.norm(inp, p=2, dim=1) ** 2  / self.nsamples
         self.H += inp.matmul(inp.t())
 
-
-    def fasterprune(
-        self, sparsity, prunen=0, prunem=0, blocksize=128, percdamp=.01
-    ):
+    def fasterprune(self, sparsity, prunen=0, prunem=0, blocksize=128, percdamp=.01):
         W = self.layer.weight.data.clone()
         if isinstance(self.layer, nn.Conv2d):
             W = W.flatten(1)
@@ -143,8 +140,6 @@ class SparseGPT:
             W[:, i2:] -= Err1.matmul(Hinv[i1:i2, i2:])
 
         torch.cuda.synchronize()
-        print('time %.2f' % (time.time() - tick))
-        print('error', torch.sum(Losses).item())
 
         if isinstance(self.layer, transformers.Conv1D):
             W = W.t()

@@ -67,7 +67,7 @@ python main.py \
 ## ❤️Acknowledgements
 
 - This source code is derived from the famous PyTorch reimplementation of [SparseGPT](https://github.com/IST-DASLab/sparsegpt), [Wanda](https://github.com/locuslab/wanda), [DSnoT](https://github.com/zyxxmu/DSnoT), [Rethinking LLM pruning](https://github.com/LOG-postech/rethinking-LLM-pruning), and [GPTAQ](https://github.com/Intelligent-Computing-Lab-Panda/GPTAQ). We thank them for their excellent open-source contributions.
-- The README file is inspired by [SparseSSM](https://github.com/horseee/LLM-Pruner),[OBS-Diff](https://github.com/Alrightlone/OBS-Diff) and [MergeMix](https://github.com/JinXins/MergeMix)
+- The README file is inspired by [SparseSSM](https://github.com/CFinTech/SparseSSM),[OBS-Diff](https://github.com/Alrightlone/OBS-Diff) and [MergeMix](https://github.com/JinXins/MergeMix)
 
 
 ## 🤗 Citation

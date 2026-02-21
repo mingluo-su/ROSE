@@ -1,12 +1,16 @@
 import math
 import torch
 import torch.nn as nn
+import transformers
 
-# Define WrappedGPT class
+DEBUG = False
+
+torch.backends.cuda.matmul.allow_tf32 = False
+torch.backends.cudnn.allow_tf32 = False
+
+
 class Wanda:
-    """
-    This class wraps a GPT layer for specific operations.
-    """
+   
     def __init__(self, layer):
         self.layer = layer
         self.dev = self.layer.weight.device
@@ -16,12 +20,12 @@ class Wanda:
         self.scaler_row = torch.zeros((self.columns), device=self.dev)
         self.nsamples = 0
 
-    def add_batch(self, inp, out):
-    
+    def add_batch(self, inp, out): 
         if len(inp.shape) == 2:
             inp = inp.unsqueeze(0)
         tmp = inp.shape[0]
-        if isinstance(self.layer, nn.Linear):
+
+        if isinstance(self.layer, nn.Linear) or isinstance(self.layer, transformers.Conv1D):
             if len(inp.shape) == 3:
                 inp = inp.reshape((-1, inp.shape[-1]))
             inp = inp.t()

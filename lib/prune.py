@@ -44,7 +44,11 @@ def prepare_calibration_input(args, model, dataloader, device):
         if hidden_size is None:
             raise ValueError("Cannot find hidden_size or dim in model config")
 
-    inps = torch.zeros((args.nsamples, model.seqlen, hidden_size),dtype=dtype,device=device,)
+    inps = torch.zeros(
+        (args.nsamples, model.seqlen, hidden_size),
+        dtype=dtype,
+        device=device,
+    )
     inps.requires_grad = False
 
     cache = {"i": 0, "attention_mask": None, "position_embeddings": None}
@@ -89,10 +93,10 @@ def prepare_calibration_input(args, model, dataloader, device):
     outs = torch.zeros_like(inps)
     if use_cache is not None:
         model.config.use_cache = use_cache
-        
+
     torch.cuda.empty_cache()
 
-    return inps,outs,cache["attention_mask"],cache["position_embeddings"]
+    return inps, outs, cache["attention_mask"], cache["position_embeddings"]
 
 
 @torch.no_grad()
@@ -100,7 +104,6 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
     """
     Layer-wise pruning pipeline.
     """
-
     use_cache = model.config.use_cache
     model.config.use_cache = False
 
@@ -108,9 +111,17 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
         raise ValueError("Model must contain model.model.layers")
 
     layers = model.model.layers
-    
-    dataloader, _ = get_loaders("c4",nsamples=args.nsamples,seed=args.seed,seqlen=2048,tokenizer=tokenizer)
-    inps, outs, attention_mask, position_embeddings = prepare_calibration_input(args, model, dataloader, device)
+
+    dataloader, _ = get_loaders(
+        "c4",
+        nsamples=args.nsamples,
+        seed=args.seed,
+        seqlen=2048,
+        tokenizer=tokenizer,
+    )
+    inps, outs, attention_mask, position_embeddings = prepare_calibration_input(
+        args, model, dataloader, device
+    )
 
     if attention_mask is not None:
         attention_mask = attention_mask.to(device)
@@ -134,7 +145,7 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
     for i in range(len(layers)):
         layer = layers[i].to(device)
         subset = find_layers(layer)
-        
+
         wrapped_layers = {}
 
         for name in subset:
@@ -152,19 +163,15 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
                 raise ValueError("Invalid prune_method during wrapping")
 
         handles = []
-
         if args.prune_method in ["Wanda", "SparseGPT", "ROSE", "DSnoT"]:
             def add_batch(name):
                 def tmp(_, inp, out):
-                    wrapped_layers[name].add_batch(
-                        inp[0].data, out.data
-                    )
+                    wrapped_layers[name].add_batch(inp[0].data, out.data)
+
                 return tmp
 
             for name in wrapped_layers:
-                handles.append(
-                    subset[name].register_forward_hook(add_batch(name))
-                )
+                handles.append(subset[name].register_forward_hook(add_batch(name)))
 
         for j in range(args.nsamples):
             outs[j] = layer(
@@ -186,7 +193,6 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
             )
             print(f"Pruning layer {i} - {name}")
 
-        # ---- Recompute outputs ----
         for j in range(args.nsamples):
             outs[j] = layer(
                 inps[j].unsqueeze(0).to(device),
@@ -248,9 +254,7 @@ def prune_wanda(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
                 idx = torch.topk(tmp, prune_n, dim=1, largest=False)[1]
                 W_mask.scatter_(1, ii + idx, True)
     else:
-        sort_res = torch.sort(
-            W_metric, dim=-1, stable=True, descending=True
-        )
+        sort_res = torch.sort(W_metric, dim=-1, stable=True, descending=True)
         indices = sort_res[1][:, :int(W_metric.shape[1] * (1 - sparsity_ratio))]
         W_mask.scatter_(1, indices, True)
 

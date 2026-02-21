@@ -21,7 +21,6 @@ def auto_or_int(value):
         raise argparse.ArgumentTypeError(f"Must be 'auto' or an integer, got '{value}'") 
 
 def get_llm(model_path):
-    
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         torch_dtype="auto", 
@@ -135,7 +134,6 @@ def main():
                 f.write(header_line + "\n")
                 f.write("-" * len(header_line) + "\n")
             f.write(data_line + "\n")
-            
             
 if __name__ == '__main__':
     main()
