@@ -8,7 +8,7 @@
 
 <h3> CPAL 2026 oral</h3>
 
-<a href="https://arxiv.org/abs/2510.06751">
+<a href="https://openreview.net/forum?id=x43pVuRwGM#discussion">
 <img alt="Paper" src="https://img.shields.io/badge/Paper-Arxiv%20Link-light">
 <a href="https://mingluo-su.github.io/ROSE-Webpage/">
 <img alt="Webpage" src="https://img.shields.io/badge/Webpage-blue">
@@ -73,10 +73,10 @@ python main.py \
 
 If you find this work useful, please consider citing:
 ```markdown
-@article{su2026rose,
+@inproceedings{su2026rose,
   title={ROSE: Reordered SparseGPT for More Accurate One-Shot Large Language Models Pruning},
   author={Su, Mingluo and Wang, Huan},
-  journal={arXiv preprint arXiv:2602.14751},
+  booktitle={CPAL},
   year={2026}
 }
 ```
