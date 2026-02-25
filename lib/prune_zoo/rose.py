@@ -85,14 +85,14 @@ class ROSE:
 
         return loss_sum
 
-    def reorder_group(self, loss_sum, blocksize):
+    def reorder_block(self, loss_sum, blocksize):
         sorted_indices = torch.argsort(loss_sum, descending=True)  # shape: [32]
         reordered_indices = torch.hstack(
             [torch.arange(x * blocksize, x * blocksize + blocksize) for x in sorted_indices]
         )
         return reordered_indices
 
-    def pruning(self, sparsity, W, H, prune_n=0, prune_m=0, blocksize=128, percdamp=0.01):
+    def hessian_compensation(self, sparsity, W, H, prune_n=0, prune_m=0, blocksize=128, percdamp=0.01):
         dead = torch.diag(H) == 0
         H[dead, dead] = 1
         W[:, dead] = 0
@@ -133,10 +133,7 @@ class ROSE:
                 d = Hinv1[i, i]
 
                 if prune_n != 0 and i % prune_m == 0:
-                    tmp = (
-                        W1[:, i: (i + prune_m)] ** 2
-                        / (torch.diag(Hinv1)[i: (i + prune_m)].reshape((1, -1))) ** 2
-                    )
+                    tmp = W1[:, i: (i + prune_m)] ** 2 / (torch.diag(Hinv1)[i: (i + prune_m)].reshape((1, -1))) ** 2
                     mask1.scatter_(1, i + torch.topk(tmp, prune_n, dim=1, largest=False)[1], True)
 
                 q = w.clone()
@@ -209,10 +206,10 @@ class ROSE:
 
         block_loss = self.caculate_block_loss(score, W, blocksize, sparsity, prune_n, prune_m)
 
-        ste = (torch.max(block_loss) - torch.min(block_loss)) / torch.max(block_loss)
-        if ste > 0.5:
-            reorder_group = self.reorder_group(block_loss, blocksize)
-            reordered_indices = reorder_column[reorder_group]
+        relative_range = (torch.max(block_loss) - torch.min(block_loss)) / torch.max(block_loss)
+        if relative_range > 0.5:
+            reorder_block = self.reorder_block(block_loss, blocksize)
+            reordered_indices = reorder_column[reorder_block]
         else:
             reordered_indices = torch.arange(self.columns, device=self.dev)
 
@@ -222,7 +219,7 @@ class ROSE:
         H = H[reordered_indices, :]
         W = W[:, reordered_indices]
 
-        W = self.pruning(
+        W = self.hessian_compensation(
             sparsity,
             W,
             H,

@@ -3,7 +3,6 @@ import os
 import numpy as np
 import torch
 from transformers import AutoTokenizer,AutoModelForCausalLM
-from importlib.metadata import version
 
 from lib.prune import prune_model
 from lib.eval import eval_ppl,eval_zero_shot
@@ -49,9 +48,7 @@ def main():
     parser.add_argument("--lm_eval_batch_size",type=auto_or_int,default="auto",help="LM eval batch size to evaluate")
     
     parser.add_argument('--save_model', type=str, default="", help='Path to save the pruned model. If empty, model will not be saved.')
-    
     parser.add_argument("--distribute",action="store_true",help="Distribute the model on multiple GPUs for evaluation.")
-
 
     args = parser.parse_args()
     # logger = Logger(args, overwrite_print=True)  
