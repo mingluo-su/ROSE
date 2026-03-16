@@ -125,19 +125,16 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
 
     if attention_mask is not None:
         attention_mask = attention_mask.to(device)
-
     if isinstance(position_embeddings, tuple):
         position_embeddings = tuple(e.to(device) for e in position_embeddings)
-    elif position_embeddings is not None:
-        position_embeddings = position_embeddings.to(device)
 
-    if args.prune_method == "Magnitude":
+    if args.prune_method == "magnitude":
         prune_fn = prune_magnitude
-    elif args.prune_method == "Wanda":
+    elif args.prune_method == "wanda":
         prune_fn = prune_wanda
-    elif args.prune_method in ["SparseGPT", "ROSE"]:
+    elif args.prune_method in ["sparsegpt", "rose"]:
         prune_fn = prune_sparsegpt
-    elif args.prune_method == "DSnoT":
+    elif args.prune_method == "dsnot":
         prune_fn = prune_dsnot
     else:
         raise ValueError(f"Unsupported prune_method: {args.prune_method}")
@@ -149,21 +146,21 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
         wrapped_layers = {}
 
         for name in subset:
-            if args.prune_method == "Magnitude":
+            if args.prune_method == "magnitude":
                 wrapped_layers[name] = None
-            elif args.prune_method == "Wanda":
+            elif args.prune_method == "wanda":
                 wrapped_layers[name] = Wanda(subset[name])
-            elif args.prune_method == "SparseGPT":
+            elif args.prune_method == "sparsegpt":
                 wrapped_layers[name] = SparseGPT(subset[name])
-            elif args.prune_method == "DSnoT":
-                wrapped_layers[name] = DSnoT(subset[name], device, layer_name=name)
-            elif args.prune_method == "ROSE":
+            elif args.prune_method == "dsnot":
+                wrapped_layers[name] = DSnoT(subset[name], layer_name=name)
+            elif args.prune_method == "rose":
                 wrapped_layers[name] = ROSE(subset[name])
             else:
                 raise ValueError("Invalid prune_method during wrapping")
 
         handles = []
-        if args.prune_method in ["Wanda", "SparseGPT", "ROSE", "DSnoT"]:
+        if args.prune_method in ["wanda", "sparsegpt", "rose", "dsnot"]:
             def add_batch(name):
                 def tmp(_, inp, out):
                     wrapped_layers[name].add_batch(inp[0].data, out.data)
@@ -202,6 +199,7 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
 
         inps, outs = outs, inps
         layers[i] = layer.to("cpu")
+        del layer
         torch.cuda.empty_cache()
 
     model.config.use_cache = use_cache
@@ -214,7 +212,7 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
 
 def prune_magnitude(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
     """
-    Magnitude pruning.
+    magnitude pruning.
     """
     if layer is None:
         raise ValueError("Layer cannot be None")

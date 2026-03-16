@@ -11,7 +11,7 @@ torch.backends.cudnn.allow_tf32 = False
 
 class DSnoT:
    
-    def __init__(self, layer,initial_method = "sparsegpt",layer_id=None,layer_name=None):
+    def __init__(self, layer,initial_method="sparsegpt",layer_id=None,layer_name=None):
         self.layer = layer
         self.dev = self.layer.weight.device
         self.rows = layer.weight.data.shape[0]
@@ -117,7 +117,6 @@ class DSnoT:
 
     ):        
         DSnoT_metric = self.layer.weight.data * self.sum_metric_row.reshape((1, -1))
-
         if self.initial_method == "wanda":
             initial_metric = torch.abs(self.layer.weight.data) * torch.sqrt(
                 self.scaler_row.reshape((1, -1))
@@ -359,7 +358,6 @@ class DSnoT:
 
                 indice_indice_list_for_regrowing = torch.zeros(
                     (reconstruction_error.shape[0], 2),
-                    device='cpu',
                     dtype=torch.long,
                 )
                 last_one = regrowing_indices_block.shape[-1] - 1
@@ -367,14 +365,12 @@ class DSnoT:
 
                 update_num_for_regrowing = torch.ones(
                     (reconstruction_error.shape[0], 2),
-                    device='cpu',
                     dtype=torch.long,
                 )
                 update_num_for_regrowing[:, 1] = -1
 
                 indice_indice_list_for_pruning = torch.zeros(
                     (reconstruction_error.shape[0], 2),
-                    device='cpu',
                     dtype=torch.long,
                 )
                 last_one = pruning_indices_block.shape[-1] - 1
@@ -382,7 +378,6 @@ class DSnoT:
 
                 update_num_for_pruning = torch.ones(
                     (reconstruction_error.shape[0], 2),
-                    device='cpu',
                     dtype=torch.long,
                 )
                 update_num_for_pruning[:, 1] = -1
@@ -391,9 +386,6 @@ class DSnoT:
                     reconstruction_error, dtype=torch.bool
                 )
                 cycle_time = 0
-                
-                DSnoT_metric_cpu = DSnoT_metric.cpu()
-                weight_mask_cpu = weight_mask.cpu()
                 
                 while not (torch.all(update_mask == False) or cycle_time >= max_cycle_time):
                     cycle_time += 1
@@ -415,7 +407,7 @@ class DSnoT:
                         indice_indice_for_regrowing.to(torch.int64),
                     )
 
-                    regrowing_metric = DSnoT_metric_cpu.gather(
+                    regrowing_metric = DSnoT_metric.gather(
                         1, regrowing_indice.to(torch.int64)
                     )
 
@@ -445,7 +437,7 @@ class DSnoT:
                         indice_indice_for_pruning.to(torch.int64),
                     )
 
-                    pruning_metric = DSnoT_metric_cpu.gather(
+                    pruning_metric = DSnoT_metric.gather(
                         1, pruning_indice.to(torch.int64)
                     )
 
@@ -477,8 +469,8 @@ class DSnoT:
                             )
                         )
                     
-                    weight_mask_cpu.scatter_(1, pruning_indice, update_mask)
-                    weight_mask_cpu.scatter_(1, regrowing_indice, ~update_mask)
+                    weight_mask.scatter_(1, pruning_indice, update_mask)
+                    weight_mask.scatter_(1, regrowing_indice, ~update_mask)
 
                     reconstruction_error += torch.where(
                         update_mask,
@@ -491,10 +483,8 @@ class DSnoT:
                         torch.zeros_like(regrowing_metric),
                     )
             
-                weight_mask.copy_(weight_mask_cpu.to(self.layer.weight.data.device))
         self.layer.weight.data[weight_mask] = 0
 
-        return mse
 
     def free(self):
         self.H = None

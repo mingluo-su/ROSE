@@ -35,13 +35,12 @@ def main():
     parser = argparse.ArgumentParser()
     
     parser.add_argument("--model_path", type=str, default="/home/sumingluo/models/llama2-7b", help="Path to the pretrained model directory.")
-    
     parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility.')
     parser.add_argument('--nsamples', type=int, default=128, help='Number of calibration samples used for pruning.')
     
     parser.add_argument('--sparsity_ratio', type=float, default=0.7, help='Target sparsity ratio.')
     parser.add_argument("--sparsity_type", type=str, default="unstructured", choices=["unstructured", "4:8", "2:4"], help='Type of sparsity pattern: unstructured or structured')
-    parser.add_argument("--prune_method", type=str, default="SparseGPT", choices=["Magnitude", "Wanda", "SparseGPT", "DSnoT", "ROSE", "dense"], help="Pruning method to apply.")
+    parser.add_argument("--prune_method", type=str, default="sparsegpt", choices=["magnitude", "wanda", "sparsegpt", "dsnot", "rose", "dense"], help="Pruning method to apply.")
     
     parser.add_argument("--tasks", type=str, nargs="+", default=["winogrande","boolq","piqa","openbookqa","hellaswag","arc_easy","arc_challenge"], help="List of evaluation tasks.")
     parser.add_argument("--eval_zero_shot", action="store_true", help="Enable zero-shot evaluation mode.")
@@ -68,7 +67,7 @@ def main():
     model.eval()    
     device = torch.device("cuda")
 
-    if args.prune_method != "dense":
+    if args.prune_method != "dense" or args.sparsity_ratio == 0:
         print("pruning starts")
         prune_model(args, model, tokenizer, device, prune_n=prune_n, prune_m=prune_m)
     else:
@@ -96,7 +95,7 @@ def main():
     dataset = 'wikitext2'
     ppl_wikitext = eval_ppl(model, tokenizer, dataset)
 
-    col_width = 10
+    col_width = 15
     ppl_header_items = ["Dataset", "Model", "Sparsity", "Method", "PPL"]
     ppl_header_line = "".join(f"{item:>{col_width}}" for item in ppl_header_items)
     ppl_data_items = [dataset, model_name,f"{args.sparsity_ratio:.1%}",args.prune_method,f"{ppl_wikitext:.4f}"]

@@ -58,7 +58,7 @@ python main.py \
     --model_path your/model/path \
     --sparsity_type unstructured \
     --sparsity_ratio 0.7 \
-    --prune_method ROSE \
+    --prune_method rose \
     --eval_zero_shot \
     --tasks winogrande boolq piqa openbookqa hellaswag arc_easy arc_challenge
 ```

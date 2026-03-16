@@ -59,7 +59,7 @@ class SparseGPT:
         self.scaler_row += torch.norm(inp, p=2, dim=1) ** 2  / self.nsamples
         self.H += inp.matmul(inp.t())
 
-    def fasterprune(self, sparsity, prunen=0, prunem=0, blocksize=128, percdamp=.01):
+    def fasterprune(self, sparsity, prune_n=0, prune_m=0, blocksize=128, percdamp=.01):
         W = self.layer.weight.data.clone()
         if isinstance(self.layer, nn.Conv2d):
             W = W.flatten(1)
@@ -101,7 +101,7 @@ class SparseGPT:
             Losses1 = torch.zeros_like(W1)
             Hinv1 = Hinv[i1:i2, i1:i2]
 
-            if prunen == 0: 
+            if prune_n == 0: 
                 if mask is not None:
                     mask1 = mask[:, i1:i2]
                 else:
@@ -115,17 +115,12 @@ class SparseGPT:
                 w = W1[:, i]
                 d = Hinv1[i, i]
 
-                if prunen != 0 and i % prunem == 0:
-                    tmp = W1[:, i:(i + prunem)] ** 2 / (torch.diag(Hinv1)[i:(i + prunem)].reshape((1, -1))) ** 2
-                    mask1.scatter_(1, i + torch.topk(tmp, prunen, dim=1, largest=False)[1], True)
+                if prune_n != 0 and i % prune_m == 0:
+                    tmp = W1[:, i:(i + prune_m)] ** 2 / (torch.diag(Hinv1)[i:(i + prune_m)].reshape((1, -1))) ** 2
+                    mask1.scatter_(1, i + torch.topk(tmp, prune_n, dim=1, largest=False)[1], True)
 
                 q = w.clone()
                 q[mask1[:, i]] = 0
-
-                if hasattr(self, 'quantizer'):
-                    q = quantize(
-                        q.unsqueeze(1), self.quantizer.scale, self.quantizer.zero, self.quantizer.maxq
-                    ).flatten()
 
                 Q1[:, i] = q
                 Losses1[:, i] = (w - q) ** 2 / d ** 2
