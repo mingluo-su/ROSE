@@ -8,7 +8,7 @@
 
 <h3> CPAL 2026 oral</h3>
 
-<a href="https://openreview.net/forum?id=x43pVuRwGM#discussion">
+<a href="https://arxiv.org/abs/2603.05878">
 <img alt="Paper" src="https://img.shields.io/badge/Paper%20Link-light">
 <a href="https://mingluo-su.github.io/ROSE-Webpage/">
 <img alt="Webpage" src="https://img.shields.io/badge/Webpage-blue">
