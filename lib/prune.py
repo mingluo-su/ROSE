@@ -1,3 +1,4 @@
+from lib.prune_zoo.quantizer import Quantizer
 import torch
 import torch.nn as nn
 
@@ -181,12 +182,21 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
             h.remove()
 
         for name in subset:
+            
+            if args.w_bits < 16:
+                    layer_weight_sym = not(args.w_asym)
+                    wrapped_layers[name].quantizer = Quantizer()
+                    wrapped_layers[name].quantizer.configure(
+                        args.w_bits, perchannel=True, sym=layer_weight_sym,
+                    )
+                    
             prune_fn(
                 subset[name],
                 wrapped_layers[name],
                 args.sparsity_ratio,
                 prune_n,
                 prune_m,
+                args.w_bits
             )
             print(f"Pruning layer {i} - {name}")
 
@@ -210,7 +220,7 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
 #  Pruning Methods
 # =========================================================
 
-def prune_magnitude(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
+def prune_magnitude(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0, w_bit=None):
     """
     magnitude pruning.
     """
@@ -235,7 +245,7 @@ def prune_magnitude(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
     layer.weight.data[W_mask] = 0
 
 
-def prune_wanda(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
+def prune_wanda(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0, w_bit=None):
     """
     Wanda pruning.
     """
@@ -260,7 +270,7 @@ def prune_wanda(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
     wrapped_layer.free()
 
 
-def prune_sparsegpt(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
+def prune_sparsegpt(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0, w_bit=16):
     """
     SparseGPT / ROSE pruning.
     """
@@ -273,11 +283,12 @@ def prune_sparsegpt(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
         prune_m=prune_m,
         percdamp=0.01,
         blocksize=128,
+        w_bit=w_bit
     )
     wrapped_layer.free()
 
 
-def prune_dsnot(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0):
+def prune_dsnot(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0, w_bit=None):
     """
     DSnoT pruning.
     """

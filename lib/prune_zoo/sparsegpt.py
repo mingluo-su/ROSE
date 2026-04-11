@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 import transformers
 
+from .quantizer import *
+
 DEBUG = False
 
 torch.backends.cuda.matmul.allow_tf32 = False
@@ -121,6 +123,12 @@ class SparseGPT:
 
                 q = w.clone()
                 q[mask1[:, i]] = 0
+
+                if hasattr(self, 'quantizer'):
+                    q = quantize(
+                        q.unsqueeze(1), self.quantizer.scale, self.quantizer.zero, self.quantizer.maxq
+                    ).flatten()
+
 
                 Q1[:, i] = q
                 Losses1[:, i] = (w - q) ** 2 / d ** 2

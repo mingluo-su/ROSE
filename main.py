@@ -49,6 +49,14 @@ def main():
     parser.add_argument('--save_model', type=str, default="", help='Path to save the pruned model. If empty, model will not be saved.')
     parser.add_argument("--distribute",action="store_true",help="Distribute the model on multiple GPUs for evaluation.")
 
+    parser.add_argument('--w_bits', type=int, default=16, 
+                        help='Number of bits for weights of the Linear layers')
+    parser.add_argument('--w_groupsize', type=int, default=-1, 
+                        help='Groupsize for weight quantization. Note that this should be the same as a_groupsize')
+    parser.add_argument('--w_asym', action="store_true",
+                        help='ASymmetric weight quantization (default: False)')
+
+
     args = parser.parse_args()
     # logger = Logger(args, overwrite_print=True)  
 
@@ -90,22 +98,22 @@ def main():
     # =======================
     # PPL Evaluation
     # =======================
-    os.makedirs("results/ppl", exist_ok=True)
-    ppl_filename = f"results/ppl/{model_name}.txt"
-    dataset = 'wikitext2'
-    ppl_wikitext = eval_ppl(model, tokenizer, dataset)
+    # os.makedirs("results/ppl", exist_ok=True)
+    # ppl_filename = f"results/ppl/{model_name}.txt"
+    # dataset = 'wikitext2'
+    # ppl_wikitext = eval_ppl(model, tokenizer, dataset)
 
-    col_width = 15
-    ppl_header_items = ["Dataset", "Model", "Sparsity", "Method", "PPL"]
-    ppl_header_line = "".join(f"{item:>{col_width}}" for item in ppl_header_items)
-    ppl_data_items = [dataset, model_name,f"{args.sparsity_ratio:.1%}",args.prune_method,f"{ppl_wikitext:.4f}"]
-    ppl_data_line = "".join(f"{item:>{col_width}}" for item in ppl_data_items)
+    # col_width = 15
+    # ppl_header_items = ["Dataset", "Model", "Sparsity", "Method", "PPL"]
+    # ppl_header_line = "".join(f"{item:>{col_width}}" for item in ppl_header_items)
+    # ppl_data_items = [dataset, model_name,f"{args.sparsity_ratio:.1%}",args.prune_method,f"{ppl_wikitext:.4f}"]
+    # ppl_data_line = "".join(f"{item:>{col_width}}" for item in ppl_data_items)
 
-    with open(ppl_filename, 'a') as f:
-        if not os.path.exists(ppl_filename) or os.path.getsize(ppl_filename) == 0:
-            f.write(ppl_header_line + "\n")
-            f.write("-" * len(ppl_header_line) + "\n")
-        f.write(ppl_data_line + "\n")
+    # with open(ppl_filename, 'a') as f:
+    #     if not os.path.exists(ppl_filename) or os.path.getsize(ppl_filename) == 0:
+    #         f.write(ppl_header_line + "\n")
+    #         f.write("-" * len(ppl_header_line) + "\n")
+    #     f.write(ppl_data_line + "\n")
 
     # =======================
     # Zero-shot Evaluation

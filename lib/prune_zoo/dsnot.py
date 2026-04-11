@@ -11,7 +11,7 @@ torch.backends.cudnn.allow_tf32 = False
 
 class DSnoT:
    
-    def __init__(self, layer,initial_method="sparsegpt",layer_id=None,layer_name=None):
+    def __init__(self, layer,initial_method="wanda",layer_id=None,layer_name=None):
         self.layer = layer
         self.dev = self.layer.weight.device
         self.rows = layer.weight.data.shape[0]
@@ -142,7 +142,6 @@ class DSnoT:
             )
             H[diag, diag] += damp
             H = torch.linalg.cholesky(H)
-           
             H = torch.cholesky_inverse(H)
             H = torch.linalg.cholesky(H, upper=True)
             Hinv = H

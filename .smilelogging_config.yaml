@@ -1,0 +1,43 @@
+# Path of the folder to store ALL the experiments.
+experiments_path: ./Experiments/spacemit
+
+
+#  Path of the folder to store experiments when debugging.
+debug_path: ./Debug_Dir
+
+
+# Folder structure of each experiment. 
+# <experiment_folder> means this is a placeholder - Do NOT change it. You may customize the others not wrapped by <>.
+experiment_folder_structure:
+  <experiment_folder>:
+    weights:
+    log: 
+      log.txt
+    system_info:
+    .caches:
+
+
+# Customize the format of experiment folder name.
+experiment_folder:
+  format: "<experiment_name>--"
+  format_ddp: "<experiment_name>--<timeid>"  
+
+# Customize the logging prefix format.
+logging_prefix: 
+  format: "<expid> R<rank> <time>"
+  format_debug: "<expid> R<rank> <time> <callinfo>"
+  time_format: "%Y/%m/%d-%H:%M:%S"
+  color: blue
+  
+
+# Backup code.
+cache_code:
+  is_open: True
+  script: ~/Projects/encode_lab_research_tools/experimenting_tools/cache_code.sh
+
+
+
+
+
+
+
