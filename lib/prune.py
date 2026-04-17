@@ -139,6 +139,10 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
         prune_fn = prune_dsnot
     else:
         raise ValueError(f"Unsupported prune_method: {args.prune_method}")
+    
+    wanda_seen_types  = set()
+    wanda_cached_mask = {}  # { type_key: W_mask }
+
 
     for i in range(len(layers)):
         layer = layers[i].to(device)
@@ -181,32 +185,53 @@ def prune_model(args, model, tokenizer, device=torch.device("cuda"), prune_n=0, 
         for h in handles:
             h.remove()
 
+        # ── Wanda: 按类型缓存 mask，每种类型只用第一个 name 计算 ──
+
         for name in subset:
-            
+
             if args.w_bits < 16:
-                    layer_weight_sym = not(args.w_asym)
-                    wrapped_layers[name].quantizer = Quantizer()
-                    wrapped_layers[name].quantizer.configure(
-                        args.w_bits, perchannel=True, sym=layer_weight_sym,
-                    )
-                    
-            prune_fn(
-                subset[name],
-                wrapped_layers[name],
-                args.sparsity_ratio,
-                prune_n,
-                prune_m,
-                args.w_bits
-            )
+                layer_weight_sym = not(args.w_asym)
+                wrapped_layers[name].quantizer = Quantizer()
+                wrapped_layers[name].quantizer.configure(
+                    args.w_bits, perchannel=True, sym=layer_weight_sym,
+                )
+
+            if args.prune_method == "wanda":
+                import re
+                type_key   = re.sub(r'\d+', '', name)   # e.g. "q_proj", "k_proj"
+                is_first   = type_key not in wanda_seen_types
+                cached     = wanda_cached_mask.get(type_key, None)
+                print(type_key,wanda_cached_mask)
+                print(f"{cached}")
+
+                returned_mask = prune_fn(
+                    subset[name],
+                    wrapped_layers[name],
+                    args.sparsity_ratio,
+                    prune_n,
+                    prune_m,
+                    args.w_bits,
+                    layer_name=name,
+                    call_index=0 if is_first else 1,   # 0 = 计算, 1 = 复用
+                    cached_mask=cached,
+                )
+
+                if is_first:
+                    wanda_cached_mask[type_key] = returned_mask  # 缓存第一次的 mask
+                    wanda_seen_types.add(type_key)
+                    print(f" {wanda_seen_types}")
+
+            else:
+                prune_fn(
+                    subset[name],
+                    wrapped_layers[name],
+                    args.sparsity_ratio,
+                    prune_n,
+                    prune_m,
+                    args.w_bits,
+                )
+
             print(f"Pruning layer {i} - {name}")
-
-        for j in range(args.nsamples):
-            outs[j] = layer(
-                inps[j].unsqueeze(0).to(device),
-                attention_mask=attention_mask,
-                position_embeddings=position_embeddings,
-            )[0]
-
         inps, outs = outs, inps
         layers[i] = layer.to("cpu")
         del layer
@@ -244,31 +269,41 @@ def prune_magnitude(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0, 
 
     layer.weight.data[W_mask] = 0
 
-
-def prune_wanda(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0, w_bit=None):
+def prune_wanda(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0, w_bit=None, 
+                layer_name=None, call_index=0, cached_mask=None):
     """
     Wanda pruning.
+    - layer_name: name of the layer, passed to wrapped_layer.free()
+    - call_index: which call this is (0 = first, compute & cache mask; >0 = reuse cached mask)
+    - cached_mask: the W_mask from the first call (call_index=0), reused for subsequent calls
+    Returns: W_mask (so caller can cache it after the first call)
     """
     if wrapped_layer is None:
         raise ValueError("wrapped_layer cannot be None for Wanda")
 
-    W_metric = torch.abs(layer.weight.data) * torch.sqrt(wrapped_layer.scaler_row.reshape((1, -1)))
-    W_mask = torch.zeros_like(W_metric) == 1
+    if call_index == 0 or cached_mask is None:
+        # ── First call: compute the mask from scratch ──
+        W_metric = torch.abs(layer.weight.data) * torch.sqrt(wrapped_layer.scaler_row.reshape((1, -1)))
+        W_mask = torch.zeros_like(W_metric) == 1
 
-    if prune_n != 0:
-        for ii in range(W_metric.shape[1]):
-            if ii % prune_m == 0:
-                tmp = W_metric[:, ii:(ii + prune_m)].float()
-                idx = torch.topk(tmp, prune_n, dim=1, largest=False)[1]
-                W_mask.scatter_(1, ii + idx, True)
+        if prune_n != 0:
+            for ii in range(W_metric.shape[1]):
+                if ii % prune_m == 0:
+                    tmp = W_metric[:, ii:(ii + prune_m)].float()
+                    idx = torch.topk(tmp, prune_n, dim=1, largest=False)[1]
+                    W_mask.scatter_(1, ii + idx, True)
+        else:
+            sort_res = torch.sort(W_metric, dim=-1, stable=True, descending=True)
+            indices = sort_res[1][:, :int(W_metric.shape[1] * (1 - sparsity_ratio))]
+            W_mask.scatter_(1, indices, True)
     else:
-        sort_res = torch.sort(W_metric, dim=-1, stable=True, descending=True)
-        indices = sort_res[1][:, :int(W_metric.shape[1] * (1 - sparsity_ratio))]
-        W_mask.scatter_(1, indices, True)
+        # ── Subsequent calls: reuse the mask from the first call ──
+        W_mask = cached_mask
 
     layer.weight.data[W_mask] = 0
     wrapped_layer.free()
 
+    return W_mask  # caller should save this when call_index == 0
 
 def prune_sparsegpt(layer, wrapped_layer, sparsity_ratio, prune_n=0, prune_m=0, w_bit=16):
     """
