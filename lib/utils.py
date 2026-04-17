@@ -80,7 +80,7 @@ def cleanup_memory(verbos=True):
 
 def distribute_model(model):
     """Distribute the model across available GPUs. NB: only implemented for Llama-2."""
-    no_split_module_classes = ['Qwen3DecoderLayer']
+    no_split_module_classes = ['LlamaDecoderLayer']
     max_memory = get_balanced_memory(
         model,
         no_split_module_classes=no_split_module_classes,

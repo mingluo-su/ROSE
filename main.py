@@ -98,22 +98,22 @@ def main():
     # =======================
     # PPL Evaluation
     # =======================
-    # os.makedirs("results/ppl", exist_ok=True)
-    # ppl_filename = f"results/ppl/{model_name}.txt"
-    # dataset = 'wikitext2'
-    # ppl_wikitext = eval_ppl(model, tokenizer, dataset)
+    os.makedirs("results/ppl", exist_ok=True)
+    ppl_filename = f"results/ppl/{model_name}.txt"
+    dataset = 'wikitext2'
+    ppl_wikitext = eval_ppl(model, tokenizer, dataset)
 
-    # col_width = 15
-    # ppl_header_items = ["Dataset", "Model", "Sparsity", "Method", "PPL"]
-    # ppl_header_line = "".join(f"{item:>{col_width}}" for item in ppl_header_items)
-    # ppl_data_items = [dataset, model_name,f"{args.sparsity_ratio:.1%}",args.prune_method,f"{ppl_wikitext:.4f}"]
-    # ppl_data_line = "".join(f"{item:>{col_width}}" for item in ppl_data_items)
+    col_width = 15
+    ppl_header_items = ["Dataset", "Model", "Sparsity", "Method", "PPL"]
+    ppl_header_line = "".join(f"{item:>{col_width}}" for item in ppl_header_items)
+    ppl_data_items = [dataset, model_name,f"{args.sparsity_ratio:.1%}",args.prune_method,f"{ppl_wikitext:.4f}"]
+    ppl_data_line = "".join(f"{item:>{col_width}}" for item in ppl_data_items)
 
-    # with open(ppl_filename, 'a') as f:
-    #     if not os.path.exists(ppl_filename) or os.path.getsize(ppl_filename) == 0:
-    #         f.write(ppl_header_line + "\n")
-    #         f.write("-" * len(ppl_header_line) + "\n")
-    #     f.write(ppl_data_line + "\n")
+    with open(ppl_filename, 'a') as f:
+        if not os.path.exists(ppl_filename) or os.path.getsize(ppl_filename) == 0:
+            f.write(ppl_header_line + "\n")
+            f.write("-" * len(ppl_header_line) + "\n")
+        f.write(ppl_data_line + "\n")
 
     # =======================
     # Zero-shot Evaluation

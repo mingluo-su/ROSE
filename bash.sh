@@ -27,7 +27,7 @@ run_experiment() {
 }
 
 # 使用示例
-run_experiment "/home/sumingluo/models/qwen3-32b" "0,1,2,3,4,5,6,7" "wanda" 
+run_experiment "/home/sumingluo/models/llama2-7b" "5,7" "wanda" 
 # run_experiment "/home/sumingluo/models/qwen3-32b" "0,1,2,3,4,5,6,7"  "dense" &
 # run_experiment "/home/sumingluo/models/qwen3-0.6b" "6,7" "wanda" &
 # run_experiment "/home/sumingluo/models/qwen3-0.6b" "2,3" "dense" &

@@ -37,7 +37,7 @@ def eval_ppl_wikitext(model, testenc, bs=1, device=None):
 
         # Forward pass through the model
         # model = model.to(device)
-        inputs = inputs.to(model.device)
+        inputs = inputs.to("cuda")
         lm_logits = model(inputs).logits
 
         # Shift logits and labels for next token prediction
