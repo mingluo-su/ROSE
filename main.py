@@ -46,7 +46,7 @@ def main():
     parser.add_argument("--eval_zero_shot", action="store_true", help="Enable zero-shot evaluation mode.")
     parser.add_argument("--lm_eval_batch_size",type=auto_or_int,default="auto",help="LM eval batch size to evaluate")
     
-    parser.add_argument('--save_model', type=str, default="", help='Path to save the pruned model. If empty, model will not be saved.')
+    parser.add_argument('--save_model', action="store_true", help='Path to save the pruned model. If empty, model will not be saved.')
     parser.add_argument("--distribute",action="store_true",help="Distribute the model on multiple GPUs for evaluation.")
 
     parser.add_argument('--w_bits', type=int, default=16, 
@@ -83,8 +83,10 @@ def main():
     print("*"*30)
      
     if args.save_model:
-        model.save_pretrained(args.save_model)
-        tokenizer.save_pretrained(args.save_model)
+        save_path = f"{model_name}_{args.prune_method}_{args.sparsity_ratio:.1%}_{args.sparsity_type}"
+        os.makedirs(save_path, exist_ok=True)
+        model.save_pretrained(save_path)
+        tokenizer.save_pretrained(save_path)
 
     sparsity_ratio = check_sparsity(model)
     print(f"sparsity sanity check {sparsity_ratio:.4f}")

@@ -1,5 +1,0 @@
-        Dataset          Model       Sparsity         Method            PPL
----------------------------------------------------------------------------
-      wikitext2      llama2-7b          50.0%          wanda        12.0093
-      wikitext2      llama2-7b          50.0%          wanda        12.0093
-      wikitext2      llama2-7b          50.0%          wanda    171483.0000

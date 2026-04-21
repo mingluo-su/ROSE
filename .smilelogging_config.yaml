@@ -19,7 +19,7 @@ experiment_folder_structure:
 
 # Customize the format of experiment folder name.
 experiment_folder:
-  format: "<experiment_name>--"
+  format: "<experiment_name>----<timeid>"
   format_ddp: "<experiment_name>--<timeid>"  
 
 # Customize the logging prefix format.
